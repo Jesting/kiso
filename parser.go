@@ -218,3 +218,13 @@ func Parse(message []byte, isod IsoDescription) []Field {
 	fmt.Println(s)
 	return fields
 }
+
+func ParsToMap(message []byte, isod IsoDescription) map[int]Field {
+	var fields = make(map[int]Field, 0)
+
+	for i, f := range Parse(message, isod) {
+		fields[i] = f
+	}
+
+	return fields
+}

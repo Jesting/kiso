@@ -137,6 +137,27 @@ func (isod *IsoDescription) GetFieldValueBinary(field Field) []byte {
 	}
 }
 
+func (isod *IsoDescription) GetMti(field Field) int {
+	if field.n != 0 {
+		panic("not mti")
+	}
+	d := isod.fieldDescriptions[field.n]
+
+	if d.format == FieldFormat_ASCII_N {
+		return int(field.value[0]-'0')*1000 +
+			int(field.value[1]-'0')*100 +
+			int(field.value[2]-'0')*10 +
+			int(field.value[3]-'0')
+	}
+	if d.format == FieldFormat_N {
+		return int(field.value[0]>>4)*1000 +
+			int(field.value[0]&0x0F)*100 +
+			int(field.value[1]>>4)*10 +
+			int(field.value[1]&0x0F)
+	}
+	panic("non mti format field")
+}
+
 func MakeIsoDescription(lengthFormat string, fieldDescriptions []FieldDescription) IsoDescription {
 	var isod = IsoDescription{
 		lengthFormat: lengthFormat,

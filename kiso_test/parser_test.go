@@ -45,7 +45,7 @@ func TestLenHex(t *testing.T) {
 		}
 	}
 
-	var message = iso.Compose(1100, fields, isod)
+	var message = iso.Compose(1234, fields, isod)
 	var res = iso.Parse(message, isod)
 
 	for i := 2; i < len(fields); i++ {
@@ -53,7 +53,9 @@ func TestLenHex(t *testing.T) {
 			t.Fail()
 		}
 	}
-
+	if isod.GetMti(res[0]) != 1234 {
+		t.Fail()
+	}
 }
 
 func TestLenAscii(t *testing.T) {
@@ -68,7 +70,7 @@ func TestLenAscii(t *testing.T) {
 		}
 	}
 
-	var message = iso.Compose(1100, fields, isod)
+	var message = iso.Compose(1234, fields, isod)
 
 	var res = iso.Parse(message, isod)
 
@@ -78,6 +80,9 @@ func TestLenAscii(t *testing.T) {
 		}
 	}
 
+	if isod.GetMti(res[0]) != 1234 {
+		t.Fail()
+	}
 }
 func TestLenBCD(t *testing.T) {
 	var isod = iso.MakeIsoDescription(iso.LengthFormat_BCD, allFields)
@@ -91,7 +96,7 @@ func TestLenBCD(t *testing.T) {
 		}
 	}
 
-	var message = iso.Compose(1100, fields, isod)
+	var message = iso.Compose(1210, fields, isod)
 
 	var res = iso.Parse(message, isod)
 
@@ -99,6 +104,10 @@ func TestLenBCD(t *testing.T) {
 		if !reflect.DeepEqual(fields[i-2], res[i]) {
 			t.Fail()
 		}
+	}
+
+	if isod.GetMti(res[0]) != 1210 {
+		t.Fail()
 	}
 
 }
