@@ -219,12 +219,11 @@ func Parse(message []byte, isod IsoDescription) []Field {
 	return fields
 }
 
-func ParsToMap(message []byte, isod IsoDescription) map[int]Field {
-	var fields = make(map[int]Field, 0)
-
-	for i, f := range Parse(message, isod) {
-		fields[i] = f
+func ParseToMap(message []byte, isod IsoDescription) map[int]*Field {
+	var fields = make(map[int]*Field, 0)
+	parsed := Parse(message, isod)
+	for i := 0; i < len(parsed); i++ {
+		fields[parsed[i].n] = &parsed[i]
 	}
-
 	return fields
 }
