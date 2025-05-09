@@ -22,19 +22,18 @@ var allFields = []iso.FieldDescription{
 	iso.MakeFieldDescription(12, "F_Z", 10, iso.FieldFormat_Z),
 	iso.MakeFieldDescription(13, "F_ASCII_B", -999, iso.FieldFormat_ASCII_B),
 	iso.MakeFieldDescription(14, "F_ASCII_N", -99, iso.FieldFormat_ASCII_N),
-	iso.MakeFieldDescription(15, "F_ASCII_Z", -9999, iso.FieldFormat_ASCII_Z),
-	iso.MakeFieldDescription(16, "F_ANS", 55, iso.FieldFormat_ANS),
-	iso.MakeFieldDescription(17, "F_AN", -100, iso.FieldFormat_AN),
-	iso.MakeFieldDescription(18, "F_NS", 10, iso.FieldFormat_NS),
-	iso.MakeFieldDescription(19, "F_ANP", -10, iso.FieldFormat_ANP),
-	iso.MakeFieldDescription(20, "F_N", -9999, iso.FieldFormat_N),
-	iso.MakeFieldDescription(21, "F_B", -999, iso.FieldFormat_B),
-	iso.MakeFieldDescription(22, "F_Z", 10, iso.FieldFormat_Z),
+	iso.MakeFieldDescription(65, "F_ASCII_Z", -9999, iso.FieldFormat_ASCII_Z),
+	iso.MakeFieldDescription(76, "F_ANS", 55, iso.FieldFormat_ANS),
+	iso.MakeFieldDescription(117, "F_AN", -100, iso.FieldFormat_AN),
+	iso.MakeFieldDescription(118, "F_NS", 10, iso.FieldFormat_NS),
+	iso.MakeFieldDescription(119, "F_ANP", -10, iso.FieldFormat_ANP),
+	iso.MakeFieldDescription(120, "F_N", -9999, iso.FieldFormat_N),
+	iso.MakeFieldDescription(121, "F_B", -999, iso.FieldFormat_B),
+	iso.MakeFieldDescription(152, "F_Z", 10, iso.FieldFormat_Z),
 }
 
 func TestLenHex(t *testing.T) {
-
-	var isod = iso.MakeIsoDescription(iso.LengthFormat_ASCII, allFields)
+	var isod = iso.MakeIsoDescription(iso.LengthFormat_HEX, allFields)
 
 	var fields = []iso.Field{}
 

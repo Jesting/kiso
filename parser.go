@@ -64,6 +64,8 @@ func (isod *IsoDescription) formatField(field *Field) []byte {
 				v = append([]byte{byte(len(v) & 0xFF)}, v...)
 			} else if d.size >= -999 {
 				v = append([]byte{byte((len(v) >> 8) & 0xFF), byte(len(v) & 0xFF)}, v...)
+			} else if d.size >= -9999 {
+				v = append([]byte{byte((len(v) >> 8) & 0xFF), byte(len(v) & 0xFF)}, v...)
 			}
 		}
 	}
