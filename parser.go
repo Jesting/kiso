@@ -148,12 +148,17 @@ func (isod *IsoDescription) getField(n int, message []byte) ([]byte, int) {
 	panic(fmt.Sprintf("unsupported field(%d) format(%s)", n, d.format))
 }
 
-func Compose(mti int, fields []Field, isod IsoDescription) []byte {
+func (isod *IsoDescription) Compose(mti int, fields []Field) []byte {
 	var message []byte
 	var bitmap [24]byte
-	var maxFieldNo int = 0
+	var maxFieldNo int = -1
 
 	for _, f := range fields {
+		if f.n <= maxFieldNo {
+			panic(fmt.Sprintf("duplicate field %d or wrong field order", f.n))
+		}
+		maxFieldNo = max(maxFieldNo, f.n) - 1
+
 		if f.n == 0 || f.n == 1 {
 			continue
 		}
@@ -165,7 +170,6 @@ func Compose(mti int, fields []Field, isod IsoDescription) []byte {
 		}
 		bitmap[(f.n-1)/8] |= (1 << shiftBy)
 
-		maxFieldNo = max(maxFieldNo, f.n) - 1
 	}
 
 	if maxFieldNo > 64 {
@@ -180,7 +184,7 @@ func Compose(mti int, fields []Field, isod IsoDescription) []byte {
 	return message
 }
 
-func Parse(message []byte, isod IsoDescription) []Field {
+func (isod *IsoDescription) Parse(message []byte) []Field {
 	var fields = make([]Field, 0)
 	fieldNo := 0
 	c := 0
@@ -219,9 +223,9 @@ func Parse(message []byte, isod IsoDescription) []Field {
 	return fields
 }
 
-func ParseToMap(message []byte, isod IsoDescription) map[int]*Field {
+func (isod *IsoDescription) ParseToMap(message []byte) map[int]*Field {
 	var fields = make(map[int]*Field, 0)
-	parsed := Parse(message, isod)
+	parsed := isod.Parse(message)
 	for i := 0; i < len(parsed); i++ {
 		fields[parsed[i].n] = &parsed[i]
 	}
