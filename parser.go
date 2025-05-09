@@ -196,12 +196,10 @@ func (isod *IsoDescription) Parse(message []byte) []Field {
 	fieldNo++
 
 	fieldBytes, cc = isod.getField(fieldNo, message[c:])
-	fmt.Println(len(fieldBytes))
+
 	fields = append(fields, Field{fieldNo, fieldBytes})
 	bitmap := fieldBytes
 	c += cc
-
-	s := ""
 	for i := 0; i < len(bitmap); i++ {
 		for j := 0; j < 8; j++ {
 
@@ -213,15 +211,9 @@ func (isod *IsoDescription) Parse(message []byte) []Field {
 				fieldBytes, cc = isod.getField(fieldNo, message[c:])
 				fields = append(fields, Field{fieldNo, fieldBytes})
 				c += cc
-				s += "1"
-			} else {
-				s += "0"
 			}
 		}
-		s += " "
-
 	}
-	fmt.Println(s)
 	return fields
 }
 

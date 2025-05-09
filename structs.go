@@ -17,6 +17,11 @@ type Field struct {
 	value []byte
 }
 
+type Message struct {
+	mti    int
+	fields map[int]*Field
+}
+
 const (
 	LengthFormat_ASCII = "ascii"
 	LengthFormat_BCD   = "bcd"
