@@ -5,15 +5,15 @@ import (
 	"fmt"
 )
 
-func asciiHexNibblesToBytes(b []byte) []byte {
+func asciiHexNibblesToBytes(b []byte) ([]byte, error) {
 	if len(b)%2 != 0 {
 		panic("invalid length")
 	}
 	res, err := hex.DecodeString(string(b))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return res
+	return res, nil
 }
 
 func bytesToAsciiHexNibbles(b []byte) []byte {
@@ -72,28 +72,37 @@ func (isod *IsoDefinition) formatField(field *Field) []byte {
 	return v
 }
 
-func (isod *IsoDefinition) getField(n int, message []byte) ([]byte, int) {
+func (isod *IsoDefinition) getField(n int, message []byte) ([]byte, int, error) {
 	d := isod.fieldDescriptions[n]
 	if d == nil {
-		panic(fmt.Sprintf("field [%d] description not found", n))
+		return nil, 0, fmt.Errorf("field [%d] description not found", n)
 	}
 
 	if d.size > 0 {
 		if d.format == FieldFormat_N {
-			return message[:(d.size+1)/2], int((d.size + 1) / 2)
+			return message[:(d.size+1)/2], int((d.size + 1) / 2), nil
 		}
 		if d.format == FieldFormat_ASCII_B {
-			return message[:d.size*2], int(d.size * 2)
+			return message[:d.size*2], int(d.size * 2), nil
 		}
 		if d.format == FieldFormat_ASCII_Bitmap {
-			b := asciiHexNibblesToBytes(message[:d.size*2])
+			b, err := asciiHexNibblesToBytes(message[:d.size*2])
+			if err != nil {
+				return nil, 0, err
+			}
 			if b[0]&0x80 == 0x80 {
-				b = asciiHexNibblesToBytes(message[:d.size*4])
+				b, err = asciiHexNibblesToBytes(message[:d.size*4])
+				if err != nil {
+					return nil, 0, err
+				}
 				if b[0+8]&0x80 == 0x80 {
-					b = asciiHexNibblesToBytes(message[:d.size*6])
+					b, err = asciiHexNibblesToBytes(message[:d.size*6])
+					if err != nil {
+						return nil, 0, err
+					}
 				}
 			}
-			return b, len(b) * 2
+			return b, len(b) * 2, nil
 		}
 		if d.format == FieldFormat_Bitmap {
 			b := message[:d.size]
@@ -103,9 +112,9 @@ func (isod *IsoDefinition) getField(n int, message []byte) ([]byte, int) {
 					b = message[:d.size*3]
 				}
 			}
-			return b, len(b)
+			return b, len(b), nil
 		}
-		return message[:d.size], int(d.size)
+		return message[:d.size], int(d.size), nil
 	}
 	if d.size < 0 {
 		size := 0
@@ -142,15 +151,15 @@ func (isod *IsoDefinition) getField(n int, message []byte) ([]byte, int) {
 			}
 		}
 		if size > 0 {
-			return message[lengthSize : lengthSize+size], int(lengthSize + size)
+			return message[lengthSize : lengthSize+size], int(lengthSize + size), nil
 		} else {
-			panic(fmt.Sprintf("unsupported field(%d) size(%d)", n, size))
+			return nil, 0, fmt.Errorf("unsupported field(%d) size(%d)", n, size)
 		}
 	}
-	panic(fmt.Sprintf("unsupported field(%d) format(%s)", n, d.format))
+	return nil, 0, fmt.Errorf("unsupported field(%d) format(%s)", n, d.format)
 }
 
-func (isod *IsoDefinition) Compose(mti int, fields []*Field) []byte {
+func (isod *IsoDefinition) Compose(mti int, fields []*Field) ([]byte, error) {
 	var message []byte
 	var bitmap [24]byte
 	var maxFieldNo int = -1
@@ -160,7 +169,7 @@ func (isod *IsoDefinition) Compose(mti int, fields []*Field) []byte {
 			continue
 		}
 		if f.n <= maxFieldNo {
-			panic(fmt.Sprintf("duplicate field %d or wrong field order", f.n))
+			return nil, fmt.Errorf("duplicate field %d or wrong field order", f.n)
 		}
 		maxFieldNo = max(maxFieldNo, f.n) - 1
 
@@ -186,19 +195,26 @@ func (isod *IsoDefinition) Compose(mti int, fields []*Field) []byte {
 
 	message = append(isod.formatBitmap(bitmap[:(maxFieldNo/64+1)*8]), message...)
 	message = append(isod.formatMTI(mti), message...)
-	return message
+	return message, nil
 }
 
-func (isod *IsoDefinition) Parse(message []byte) []*Field {
+func (isod *IsoDefinition) Parse(message []byte) ([]*Field, error) {
 	var fields = make([]*Field, 0)
 	fieldNo := 0
 	c := 0
-	fieldBytes, cc := isod.getField(fieldNo, message[c:])
+	fieldBytes, cc, err := isod.getField(fieldNo, message[c:])
+	if err != nil {
+		return nil, err
+	}
+
 	c += cc
 	fields = append(fields, &Field{fieldNo, fieldBytes})
 	fieldNo++
 
-	fieldBytes, cc = isod.getField(fieldNo, message[c:])
+	fieldBytes, cc, err = isod.getField(fieldNo, message[c:])
+	if err != nil {
+		return nil, err
+	}
 
 	fields = append(fields, &Field{fieldNo, fieldBytes})
 	bitmap := fieldBytes
@@ -211,34 +227,48 @@ func (isod *IsoDefinition) Parse(message []byte) []*Field {
 			}
 			fieldNo++
 			if (bitmap[i] & (1 << uint8(7-j))) != 0 {
-				fieldBytes, cc = isod.getField(fieldNo, message[c:])
+				fieldBytes, cc, err = isod.getField(fieldNo, message[c:])
+				if err != nil {
+					return nil, err
+				}
 				fields = append(fields, &Field{fieldNo, fieldBytes})
 				c += cc
 			}
 		}
 	}
-	return fields
+	return fields, nil
 }
 
-func (isod *IsoDefinition) ParseToMap(message []byte) map[int]*Field {
+func (isod *IsoDefinition) ParseToMap(message []byte) (map[int]*Field, error) {
 	var fields = make(map[int]*Field, 0)
-	parsed := isod.Parse(message)
+	parsed, err := isod.Parse(message)
+	if err != nil {
+		return nil, err
+	}
 	for i := 0; i < len(parsed); i++ {
 		fields[parsed[i].n] = parsed[i]
 	}
-	return fields
+	return fields, nil
 }
 
-func (isod *IsoDefinition) ParseToMessage(messageBytes []byte) *Message {
+func (isod *IsoDefinition) ParseToMessage(messageBytes []byte) (*Message, error) {
 	var message = Message{}
-	parsed := isod.Parse(messageBytes)
+	parsed, err := isod.Parse(messageBytes)
+	if err != nil {
+		return nil, err
+	}
 	for i := 0; i < len(parsed); i++ {
 		message.fields[parsed[i].n] = parsed[i]
 	}
 	message.mti = isod.GetMti(parsed[0])
 
-	return &message
+	return &message, err
 }
-func (isod *IsoDefinition) ComposeFromMessage(message Message) []byte {
-	return isod.Compose(message.mti, message.fields[:])
+func (isod *IsoDefinition) ComposeFromMessage(message *Message) ([]byte, error) {
+	var res, err = isod.Compose(message.mti, message.fields[:])
+	if err != nil {
+		return nil, err
+	} else {
+		return res, nil
+	}
 }

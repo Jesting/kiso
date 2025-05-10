@@ -3,6 +3,7 @@ package kiso
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 func MakeFieldDescription(n int, description string, size int, format string) FieldDescription {
@@ -28,6 +29,17 @@ func (isod *IsoDefinition) ToString(field *Field) string {
 		value = string(field.value)
 	}
 	return fmt.Sprintf("DF.%03d : (%03d) %-20s %s", field.n, len(field.value), value, d.description)
+}
+
+func (isod *IsoDefinition) MessageToString(m *Message) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("Message: MTI %d\n", m.mti))
+	for i := 0; i < len(m.fields); i++ {
+		if m.fields[i] != nil {
+			sb.WriteString(fmt.Sprintf("%s\n", isod.ToString(m.fields[i])))
+		}
+	}
+	return sb.String()
 }
 
 func (isod *IsoDefinition) MakeFieldAscii(n int, v string) *Field {

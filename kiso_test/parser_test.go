@@ -44,8 +44,15 @@ func TestLenHex(t *testing.T) {
 		}
 	}
 
-	var message = isod.Compose(1234, fields)
-	var res = isod.Parse(message)
+	message, err := isod.Compose(1234, fields)
+	if err != nil {
+		t.Fail()
+	}
+	res, err := isod.Parse(message)
+
+	if err != nil {
+		t.Fail()
+	}
 
 	for i := 2; i < len(fields); i++ {
 		if !reflect.DeepEqual(fields[i-2], res[i]) {
@@ -69,9 +76,15 @@ func TestLenAscii(t *testing.T) {
 		}
 	}
 
-	var message = isod.Compose(1234, fields)
+	message, err := isod.Compose(1234, fields)
+	if err != nil {
+		t.Fail()
+	}
 
-	var res = isod.Parse(message)
+	res, err := isod.Parse(message)
+	if err != nil {
+		t.Fail()
+	}
 
 	for i := 2; i < len(fields); i++ {
 		if !reflect.DeepEqual(fields[i-2], res[i]) {
@@ -95,9 +108,15 @@ func TestLenBCD(t *testing.T) {
 		}
 	}
 
-	var message = isod.Compose(1210, fields)
+	message, err := isod.Compose(1210, fields)
+	if err != nil {
+		t.Fail()
+	}
 
-	var res = isod.Parse(message)
+	res, err := isod.Parse(message)
+	if err != nil {
+		t.Fail()
+	}
 
 	for i := 2; i < len(fields); i++ {
 		if !reflect.DeepEqual(fields[i-2], res[i]) {
