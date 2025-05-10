@@ -239,18 +239,6 @@ func (isod *IsoDefinition) Parse(message []byte) ([]*Field, error) {
 	return fields, nil
 }
 
-func (isod *IsoDefinition) ParseToMap(message []byte) (map[int]*Field, error) {
-	var fields = make(map[int]*Field, 0)
-	parsed, err := isod.Parse(message)
-	if err != nil {
-		return nil, err
-	}
-	for i := 0; i < len(parsed); i++ {
-		fields[parsed[i].n] = parsed[i]
-	}
-	return fields, nil
-}
-
 func (isod *IsoDefinition) ParseToMessage(messageBytes []byte) (*Message, error) {
 	var message = Message{}
 	parsed, err := isod.Parse(messageBytes)
