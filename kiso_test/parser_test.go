@@ -35,12 +35,12 @@ var allFields = []iso.FieldDescription{
 func TestLenHex(t *testing.T) {
 	var isod = iso.MakeIsoDescription(iso.LengthFormat_HEX, allFields)
 
-	var fields = []iso.Field{}
+	var fields = []*iso.Field{}
 
 	for i := 2; i < 3*64; i++ {
 		var field = isod.MakeSampleField(i)
 		if field != nil {
-			fields = append(fields, *field)
+			fields = append(fields, field)
 		}
 	}
 
@@ -60,12 +60,12 @@ func TestLenHex(t *testing.T) {
 func TestLenAscii(t *testing.T) {
 	var isod = iso.MakeIsoDescription(iso.LengthFormat_ASCII, allFields)
 
-	var fields = []iso.Field{}
+	var fields = []*iso.Field{}
 
 	for i := 2; i < 3*64; i++ {
 		var field = isod.MakeSampleField(i)
 		if field != nil {
-			fields = append(fields, *field)
+			fields = append(fields, field)
 		}
 	}
 
@@ -86,12 +86,12 @@ func TestLenAscii(t *testing.T) {
 func TestLenBCD(t *testing.T) {
 	var isod = iso.MakeIsoDescription(iso.LengthFormat_BCD, allFields)
 
-	var fields = []iso.Field{}
+	var fields = []*iso.Field{}
 
 	for i := 2; i < 3*64; i++ {
 		var field = isod.MakeSampleField(i)
 		if field != nil {
-			fields = append(fields, *field)
+			fields = append(fields, field)
 		}
 	}
 

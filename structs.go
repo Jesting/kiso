@@ -1,6 +1,6 @@
 package kiso
 
-type IsoDescription struct {
+type IsoDefinition struct {
 	lengthFormat      string
 	fieldDescriptions [64 * 3]*FieldDescription
 }
@@ -19,7 +19,7 @@ type Field struct {
 
 type Message struct {
 	mti    int
-	fields map[int]*Field
+	fields [64 * 3]*Field
 }
 
 const (

@@ -20,7 +20,7 @@ func bytesToAsciiHexNibbles(b []byte) []byte {
 	return []byte(hex.EncodeToString(b))
 }
 
-func (isod *IsoDescription) formatMTI(mti int) []byte {
+func (isod *IsoDefinition) formatMTI(mti int) []byte {
 	d := isod.fieldDescriptions[0]
 	if d.format == FieldFormat_ASCII_N {
 		return []byte(fmt.Sprintf("%04d", mti))
@@ -29,7 +29,7 @@ func (isod *IsoDescription) formatMTI(mti int) []byte {
 		return bcdMti
 	}
 }
-func (isod *IsoDescription) formatBitmap(b []byte) []byte {
+func (isod *IsoDefinition) formatBitmap(b []byte) []byte {
 	d := isod.fieldDescriptions[1]
 	if d.format == FieldFormat_ASCII_Bitmap {
 		return bytesToAsciiHexNibbles(b)
@@ -37,7 +37,7 @@ func (isod *IsoDescription) formatBitmap(b []byte) []byte {
 		return b
 	}
 }
-func (isod *IsoDescription) formatField(field *Field) []byte {
+func (isod *IsoDefinition) formatField(field *Field) []byte {
 	d := isod.fieldDescriptions[field.n]
 
 	var v = field.value
@@ -72,7 +72,7 @@ func (isod *IsoDescription) formatField(field *Field) []byte {
 	return v
 }
 
-func (isod *IsoDescription) getField(n int, message []byte) ([]byte, int) {
+func (isod *IsoDefinition) getField(n int, message []byte) ([]byte, int) {
 	d := isod.fieldDescriptions[n]
 	if d == nil {
 		panic(fmt.Sprintf("field [%d] description not found", n))
@@ -150,12 +150,15 @@ func (isod *IsoDescription) getField(n int, message []byte) ([]byte, int) {
 	panic(fmt.Sprintf("unsupported field(%d) format(%s)", n, d.format))
 }
 
-func (isod *IsoDescription) Compose(mti int, fields []Field) []byte {
+func (isod *IsoDefinition) Compose(mti int, fields []*Field) []byte {
 	var message []byte
 	var bitmap [24]byte
 	var maxFieldNo int = -1
 
 	for _, f := range fields {
+		if f == nil {
+			continue
+		}
 		if f.n <= maxFieldNo {
 			panic(fmt.Sprintf("duplicate field %d or wrong field order", f.n))
 		}
@@ -164,7 +167,7 @@ func (isod *IsoDescription) Compose(mti int, fields []Field) []byte {
 		if f.n == 0 || f.n == 1 {
 			continue
 		}
-		message = append(message, isod.formatField(&f)...)
+		message = append(message, isod.formatField(f)...)
 
 		shiftBy := uint8(8 - f.n%8)
 		if shiftBy == 8 {
@@ -186,18 +189,18 @@ func (isod *IsoDescription) Compose(mti int, fields []Field) []byte {
 	return message
 }
 
-func (isod *IsoDescription) Parse(message []byte) []Field {
-	var fields = make([]Field, 0)
+func (isod *IsoDefinition) Parse(message []byte) []*Field {
+	var fields = make([]*Field, 0)
 	fieldNo := 0
 	c := 0
 	fieldBytes, cc := isod.getField(fieldNo, message[c:])
 	c += cc
-	fields = append(fields, Field{fieldNo, fieldBytes})
+	fields = append(fields, &Field{fieldNo, fieldBytes})
 	fieldNo++
 
 	fieldBytes, cc = isod.getField(fieldNo, message[c:])
 
-	fields = append(fields, Field{fieldNo, fieldBytes})
+	fields = append(fields, &Field{fieldNo, fieldBytes})
 	bitmap := fieldBytes
 	c += cc
 	for i := 0; i < len(bitmap); i++ {
@@ -209,7 +212,7 @@ func (isod *IsoDescription) Parse(message []byte) []Field {
 			fieldNo++
 			if (bitmap[i] & (1 << uint8(7-j))) != 0 {
 				fieldBytes, cc = isod.getField(fieldNo, message[c:])
-				fields = append(fields, Field{fieldNo, fieldBytes})
+				fields = append(fields, &Field{fieldNo, fieldBytes})
 				c += cc
 			}
 		}
@@ -217,11 +220,25 @@ func (isod *IsoDescription) Parse(message []byte) []Field {
 	return fields
 }
 
-func (isod *IsoDescription) ParseToMap(message []byte) map[int]*Field {
+func (isod *IsoDefinition) ParseToMap(message []byte) map[int]*Field {
 	var fields = make(map[int]*Field, 0)
 	parsed := isod.Parse(message)
 	for i := 0; i < len(parsed); i++ {
-		fields[parsed[i].n] = &parsed[i]
+		fields[parsed[i].n] = parsed[i]
 	}
 	return fields
+}
+
+func (isod *IsoDefinition) ParseToMessage(messageBytes []byte) *Message {
+	var message = Message{}
+	parsed := isod.Parse(messageBytes)
+	for i := 0; i < len(parsed); i++ {
+		message.fields[parsed[i].n] = parsed[i]
+	}
+	message.mti = isod.GetMti(parsed[0])
+
+	return &message
+}
+func (isod *IsoDefinition) ComposeFromMessage(message Message) []byte {
+	return isod.Compose(message.mti, message.fields[:])
 }
