@@ -59,7 +59,11 @@ func TestLenHex(t *testing.T) {
 			t.Fail()
 		}
 	}
-	if isod.GetMti(res[0]) != 1234 {
+	mti, err := isod.GetMti(res[0])
+	if err != nil {
+		t.Fail()
+	}
+	if mti != 1234 {
 		t.Fail()
 	}
 }
@@ -92,7 +96,11 @@ func TestLenAscii(t *testing.T) {
 		}
 	}
 
-	if isod.GetMti(res[0]) != 1234 {
+	mti, err := isod.GetMti(res[0])
+	if err != nil {
+		t.Fail()
+	}
+	if mti != 1234 {
 		t.Fail()
 	}
 }
@@ -124,7 +132,11 @@ func TestLenBCD(t *testing.T) {
 		}
 	}
 
-	if isod.GetMti(res[0]) != 1210 {
+	mti, err := isod.GetMti(res[0])
+	if err != nil {
+		t.Fail()
+	}
+	if mti != 1210 {
 		t.Fail()
 	}
 

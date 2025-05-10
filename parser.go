@@ -7,7 +7,7 @@ import (
 
 func asciiHexNibblesToBytes(b []byte) ([]byte, error) {
 	if len(b)%2 != 0 {
-		panic("invalid length")
+		return []byte{}, fmt.Errorf("invalid length")
 	}
 	res, err := hex.DecodeString(string(b))
 	if err != nil {
@@ -260,7 +260,11 @@ func (isod *IsoDefinition) ParseToMessage(messageBytes []byte) (*Message, error)
 	for i := 0; i < len(parsed); i++ {
 		message.fields[parsed[i].n] = parsed[i]
 	}
-	message.mti = isod.GetMti(parsed[0])
+	message.mti, err = isod.GetMti(parsed[0])
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &message, err
 }

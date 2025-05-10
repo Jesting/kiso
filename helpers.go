@@ -121,7 +121,7 @@ func (isod *IsoDefinition) MakeFieldBinary(n int, b []byte) *Field {
 		value: b}
 }
 
-func (isod *IsoDefinition) GetFieldValueAscii(field *Field) string {
+func (isod *IsoDefinition) GetFieldValueAscii(field *Field) (string, error) {
 	d := isod.fieldDescriptions[field.n]
 	if d.format == FieldFormat_ASCII_Bitmap ||
 		d.format == FieldFormat_ASCII_B ||
@@ -131,27 +131,27 @@ func (isod *IsoDefinition) GetFieldValueAscii(field *Field) string {
 		d.format == FieldFormat_AN ||
 		d.format == FieldFormat_NS ||
 		d.format == FieldFormat_ANP {
-		return string(field.value)
+		return string(field.value), nil
 
 	} else {
-		panic("non-ascii field")
+		return "", fmt.Errorf("non-ascii field")
 	}
 }
 
-func (isod *IsoDefinition) GetFieldValueBinary(field *Field) []byte {
+func (isod *IsoDefinition) GetFieldValueBinary(field *Field) ([]byte, error) {
 	d := isod.fieldDescriptions[field.n]
 	if d.format != FieldFormat_N &&
 		d.format != FieldFormat_B &&
 		d.format != FieldFormat_Z {
-		panic("non-byte field")
+		return nil, fmt.Errorf("non-byte field")
 	} else {
-		return field.value
+		return field.value, nil
 	}
 }
 
-func (isod *IsoDefinition) GetMti(field *Field) int {
+func (isod *IsoDefinition) GetMti(field *Field) (int, error) {
 	if field.n != 0 {
-		panic("not mti")
+		return 0, fmt.Errorf("not mti field")
 	}
 	d := isod.fieldDescriptions[field.n]
 
@@ -159,15 +159,16 @@ func (isod *IsoDefinition) GetMti(field *Field) int {
 		return int(field.value[0]-'0')*1000 +
 			int(field.value[1]-'0')*100 +
 			int(field.value[2]-'0')*10 +
-			int(field.value[3]-'0')
+			int(field.value[3]-'0'), nil
 	}
 	if d.format == FieldFormat_N {
 		return int(field.value[0]>>4)*1000 +
 			int(field.value[0]&0x0F)*100 +
 			int(field.value[1]>>4)*10 +
-			int(field.value[1]&0x0F)
+			int(field.value[1]&0x0F), nil
 	}
-	panic("non mti format field")
+	return 0, fmt.Errorf("non mti format field")
+
 }
 
 func MakeIsoDescription(lengthFormat string, fieldDescriptions []FieldDescription) IsoDefinition {
