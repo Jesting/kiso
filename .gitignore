@@ -3,7 +3,7 @@
 #
 # Binaries for programs and plugins
 x.go
-example/
+run/
 *.exe
 *.exe~
 *.dll

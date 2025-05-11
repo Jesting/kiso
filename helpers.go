@@ -185,7 +185,7 @@ func (m *Message) SetField(f *Field) {
 
 func (isod *IsoDefinition) MessageToString(m *Message) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("\nMTI %04d\n", m.mti))
+	sb.WriteString(fmt.Sprintf("MTI %04d\n", m.mti))
 	maxDescrLen := 0
 
 	for i := 2; i < len(m.fields); i++ {
