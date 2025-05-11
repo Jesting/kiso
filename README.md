@@ -3,7 +3,7 @@
 
 KISO is simple ISO8583 parser + some standard primitives
 **Code supports:**
-    * LLVar, LLLVar, LLLLVar fields length
+    * LLVar, LLLVar, LLLLVar field length
     * ASCII, BCD & HEX length prefixes
     * ASCII & Binary fields
     * MTI composition

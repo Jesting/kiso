@@ -15,33 +15,6 @@ func MakeFieldDescription(n int, description string, size int, format string) Fi
 	}
 }
 
-func (isod *IsoDefinition) ToString(field *Field) string {
-	d := isod.fieldDescriptions[field.n]
-
-	var value string
-	if d.format == FieldFormat_ASCII_B {
-		value = string(field.value)
-	} else if d.format == FieldFormat_ASCII_Bitmap {
-		value = string(bytesToAsciiHexNibbles(field.value))
-	} else if d.format == FieldFormat_N || d.format == FieldFormat_B || d.format == FieldFormat_Z {
-		value = fmt.Sprintf("%X", field.value)
-	} else {
-		value = string(field.value)
-	}
-	return fmt.Sprintf("DF.%03d : (%03d) %-20s %s", field.n, len(field.value), value, d.description)
-}
-
-func (isod *IsoDefinition) MessageToString(m *Message) string {
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Message: MTI %d\n", m.mti))
-	for i := 0; i < len(m.fields); i++ {
-		if m.fields[i] != nil {
-			sb.WriteString(fmt.Sprintf("%s\n", isod.ToString(m.fields[i])))
-		}
-	}
-	return sb.String()
-}
-
 func (isod *IsoDefinition) MakeFieldAscii(n int, v string) *Field {
 	d := isod.fieldDescriptions[n]
 	if d == nil {
@@ -208,4 +181,38 @@ func (m *Message) GetField(n int) *Field {
 }
 func (m *Message) SetField(f *Field) {
 	m.fields[f.n] = f
+}
+
+func (isod *IsoDefinition) MessageToString(m *Message) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("\nMTI %04d\n", m.mti))
+	maxDescrLen := 0
+
+	for i := 2; i < len(m.fields); i++ {
+		if m.fields[i] != nil {
+			maxDescrLen = max(len(isod.fieldDescriptions[i].description), maxDescrLen)
+		}
+	}
+	sb.WriteString(fmt.Sprintf("%-7s|%-*s|%-6s|%-s\n", strings.Repeat("-", 7), maxDescrLen, strings.Repeat("-", maxDescrLen+2), strings.Repeat("-", 6), strings.Repeat("-", 15)))
+	sb.WriteString(fmt.Sprintf("%-7s|%-*s|%-6s|%-s\n", " FIELD", maxDescrLen+2, " NAME", " LEN", " VALUE"))
+	sb.WriteString(fmt.Sprintf("%-7s|%-*s|%-6s|%-s\n", strings.Repeat("-", 7), maxDescrLen, strings.Repeat("-", maxDescrLen+2), strings.Repeat("-", 6), strings.Repeat("-", 15)))
+	for i := 2; i < len(m.fields); i++ {
+		if m.fields[i] != nil {
+			d := isod.fieldDescriptions[m.fields[i].n]
+
+			var value string
+			if d.format == FieldFormat_ASCII_B {
+				value = string(m.fields[i].value)
+			} else if d.format == FieldFormat_ASCII_Bitmap {
+				value = string(bytesToAsciiHexNibbles(m.fields[i].value))
+			} else if d.format == FieldFormat_N || d.format == FieldFormat_B || d.format == FieldFormat_Z {
+				value = fmt.Sprintf("%X", m.fields[i].value)
+			} else {
+				value = string(m.fields[i].value)
+			}
+
+			sb.WriteString(fmt.Sprintf("DF.%03d : %-*s : %04d : %s\n", m.fields[i].n, maxDescrLen, d.description, len(m.fields[i].value), value))
+		}
+	}
+	return sb.String()
 }
