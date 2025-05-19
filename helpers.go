@@ -211,7 +211,7 @@ func (isod *IsoDefinition) MessageToString(m *Message) string {
 				value = string(m.fields[i].value)
 			}
 
-			sb.WriteString(fmt.Sprintf("DF.%03d : %-*s : %04d : %s\n", m.fields[i].n, maxDescrLen, d.description, len(m.fields[i].value), value))
+			sb.WriteString(fmt.Sprintf("DE.%03d : %-*s : %04d : %s\n", m.fields[i].n, maxDescrLen, d.description, len(m.fields[i].value), value))
 		}
 	}
 	return sb.String()
