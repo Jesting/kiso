@@ -185,14 +185,47 @@ func (m *Message) SetField(f *Field) {
 
 func (isod *IsoDefinition) MessageToString(m *Message) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("MTI %04d\n", m.mti))
+	sb.WriteString(fmt.Sprintf("MTI %04d, ", m.mti))
 	maxDescrLen := 0
+	maxFieldNo := 0
+	var bitmap [24]byte
 
 	for i := 2; i < len(m.fields); i++ {
 		if m.fields[i] != nil {
+			maxFieldNo = i - 1
 			maxDescrLen = max(len(isod.fieldDescriptions[i].description), maxDescrLen)
+			shiftBy := uint8(8 - i%8)
+			if shiftBy == 8 {
+				shiftBy = 0
+			}
+			bitmap[(i-1)/8] |= (1 << shiftBy)
 		}
 	}
+	if maxFieldNo > 64 {
+		bitmap[0] |= 0x80
+	}
+	if maxFieldNo > 128 {
+		bitmap[8] |= 0x80
+	}
+	bitmapToPrint := bitmap[:(maxFieldNo/64+1)*8]
+
+	sb.WriteString(fmt.Sprintf("bitmap: %X", bitmapToPrint))
+	nums := ""
+	for i := 0; i < len(bitmapToPrint); i++ {
+		if i%8 == 0 {
+			sb.WriteString("\n")
+			sb.WriteString(nums)
+			sb.WriteString("\n")
+			nums = ""
+		}
+		sb.WriteString(fmt.Sprintf("%08b ", bitmap[i]))
+		nums += fmt.Sprintf("%-8s|", fmt.Sprintf("%d", (i+1)*8))
+		nums = strings.ReplaceAll(nums, " ", ".")
+	}
+	sb.WriteString("\n")
+	sb.WriteString(nums)
+	sb.WriteString("\n")
+
 	sb.WriteString(fmt.Sprintf("%-7s|%-*s|%-6s|%-s\n", strings.Repeat("-", 7), maxDescrLen, strings.Repeat("-", maxDescrLen+2), strings.Repeat("-", 6), strings.Repeat("-", 15)))
 	sb.WriteString(fmt.Sprintf("%-7s|%-*s|%-6s|%-s\n", " FIELD", maxDescrLen+2, " NAME", " LEN", " VALUE"))
 	sb.WriteString(fmt.Sprintf("%-7s|%-*s|%-6s|%-s\n", strings.Repeat("-", 7), maxDescrLen, strings.Repeat("-", maxDescrLen+2), strings.Repeat("-", 6), strings.Repeat("-", 15)))

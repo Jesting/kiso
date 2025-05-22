@@ -35,6 +35,7 @@ func readMessage(con *net.Conn) ([]byte, error) {
 	}
 
 	fmt.Printf("<<<%X\n", bytes)
+	fmt.Printf("ASCII<<<%s\n", string(bytes))
 
 	return bytes, nil
 }
@@ -47,6 +48,7 @@ func writeMessage(con *net.Conn, bytes []byte) {
 	(*con).Write(lenBytes)
 
 	fmt.Printf(">>>%X\n", bytes)
+	fmt.Printf("ASCII>>>%s\n", string(bytes))
 	(*con).Write(bytes)
 }
 
