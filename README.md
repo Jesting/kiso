@@ -12,7 +12,7 @@ KISO is simple [ISO8583] parser + some standard primitives
 * Padding
 * Message output
 
-## To use the app you need:
+## To build the app you need:
 - [Go compiler]
 
 ## Import
