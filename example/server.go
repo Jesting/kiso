@@ -31,7 +31,7 @@ func readMessage(con *net.Conn) ([]byte, error) {
 		return lenBytes, err
 	}
 	if cnt != length {
-		return lenBytes, fmt.Errorf("message size not equal to %d", length)
+		return lenBytes, fmt.Errorf("message size is not equal to %d", length)
 	}
 
 	fmt.Printf("<<<%X\n", bytes)
