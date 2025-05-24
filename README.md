@@ -1,7 +1,7 @@
 # KISO
 ## _for Payments101_
 
-KISO is simple [ISO8583] parser + some standard primitives
+KISO is simple [ISO8583] parser + some standard's primitives
 
 **Code supports:**
 * LLVar, LLLVar, LLLLVar field length
