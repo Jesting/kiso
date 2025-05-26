@@ -3,6 +3,7 @@
 #
 # Binaries for programs and plugins
 run/
+example
 *.exe
 *.exe~
 *.dll
