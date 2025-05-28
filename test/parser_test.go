@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	iso "github.com/Jesting/kiso"
+	iso "github.com/Jesting/kiso/parser"
 )
 
 var allFields = []iso.FieldDescription{

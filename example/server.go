@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	iso "github.com/Jesting/kiso"
+	iso "github.com/Jesting/kiso/parser"
 )
 
 func readMessage(con *net.Conn) ([]byte, error) {

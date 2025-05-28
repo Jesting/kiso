@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	iso "github.com/Jesting/kiso"
+	iso "github.com/Jesting/kiso/parser"
 )
 
 func composeRequest(input string) (*iso.Message, error) {

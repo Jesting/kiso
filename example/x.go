@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	iso "github.com/Jesting/kiso"
+	iso "github.com/Jesting/kiso/parser"
 )
 
 var isod = iso.MakeIsoDescription(iso.LengthFormat_ASCII, iso.Fields93)
